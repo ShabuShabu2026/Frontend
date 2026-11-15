@@ -1,43 +1,64 @@
-# NASA Space Apps Seoul — Frontend
+# Lunar Landing Site Analysis Frontend
 
-React application based on `docs/archi.md`. UI text is English. The existing gray/black palette, restrained purple accents, viewport-fitting layout capped at 990px and pinned analysis button are preserved.
+React frontend for configuring lunar south pole missions and reviewing landing sites, terrain, and Sun and Earth visibility.
 
-## Run
+Live: https://nasa-space-apps-seoul-two.vercel.app
+
+## Features
+
+- **Mission configuration**: Set the landing date, stay duration, mission type, science objective, power and communication needs, slope limit, Sun and Earth visibility criteria, and landing-date search range.
+- **Importance weighting**: Rate Communication, Flatness, Roughness, Sunlight and objective-specific criteria from 1 to 5 and review the resulting weights.
+- **Candidate sites**: Analyze the configuration to get ranked landing sites and a suitability grid on a south pole map. Zooming and panning refresh the recommendations for the visible region.
+- **Site details**: Review each site in three tabs: Overview for scores, exclusion reasons and the best landing date; 3D Terrain for the surrounding DEM surface; and Sun & Earth for the hourly visibility timeline.
+- **Moon locator**: See where the selected area lies on a lunar globe.
+
+## Stack
+
+- React 19
+- Vite 8
+- Three.js
+- NASA Moon Trek basemap tiles and LROC WAC globe imagery
+
+## Requirements
+
+- Node.js 22.12 or later and npm
+- macOS or Linux shell for the local commands below
+- Internet access to reach the backend API and the map imagery
+- A running Lunar Landing Site Analysis Backend
+
+## 1. Install
+
+Run the following commands in a terminal from the repository root:
 
 ```sh
-cd /Users/zzimin/Develop/2026-NASA/Frontend
 npm install
+```
+
+## 2. Configure the environment
+
+Create a local environment file:
+
+```sh
+cp .env.example .env.local
+open -e .env.local
+```
+
+Set `VITE_API_BASE_URL` to the backend address. For a local backend, a minimal example is:
+
+```dotenv
+VITE_API_BASE_URL=http://127.0.0.1:8000
+```
+
+Restart the dev server after changing this value. Do not commit `.env.local`.
+
+| Variable | Purpose |
+| --- | --- |
+| `VITE_API_BASE_URL` | Base URL of the backend API. |
+
+## 3. Start and verify
+
+```sh
 npm run dev
 ```
 
-Open the Local URL printed in the terminal. `npm run build` creates the production bundle; `npm run lint` checks the source.
-
-## Screen review
-
-- `/`: mission configuration and reference lunar image
-- `/?preview=candidates`: empty candidate list layout
-- `/?preview=details`: detail layout with Overview, 3D Terrain and Sun & Earth tabs
-
-The presentation adapter in `src/data/presentation.js` is connected by default. Analyze shows 10 candidate sites, map markers and populated sidebar details with terrain and hourly visibility. Values are illustrative presentation fixtures, not scientific analysis results. The UI has no mode badge. Replace the adapter with the actual API using `docs/frontend-integration.md` when it is available.
-
-## React basics
-
-A component is a function that returns JSX (HTML-like markup). `App` combines the configuration, candidate list, map and site details. Props pass values and functions to child components. `useState` remembers input values and the selected screen; changing state updates the UI. `useEffect` synchronizes automatic weight and detail requests with a supplied service adapter. Ordinary CSS controls the layout.
-
-## Files
-
-- `src/App.jsx`: navigation, result state and service integration
-- `src/components/Configuration.jsx`: controlled inputs and collapsed settings
-- `src/components/SiteDetails.jsx`: detail tabs, data-driven DEM surface and visibility timeline
-- `src/lib/mission.js`: specified options, defaults, dependent input rules and validation
-- `src/App.css`: screen styles and independent scrolling
-- `docs/frontend-review.md`: specification comparison, corrections, verification and remaining integration work
-- `docs/frontend-integration.md`: frontend adapter interface; no backend URLs or endpoint paths are assumed
-
-## Deployment
-
-Production: https://nasa-space-apps-seoul-two.vercel.app
-
-Hosting: Vercel, project `nasa-space-apps-seoul`. Build settings are in `vercel.json` (`npm run build`, output `dist`). Update the linked deployment from this folder with `npx vercel --prod`.
-
-The first deployment uploaded local source directly. Automatic GitHub deployment is not connected because Vercel could not access `ShabuShabu2026/Frontend`; configure the repository connection in Vercel to enable deployment on push.
+Open the Local URL printed in the terminal (normally http://localhost:5173), configure a mission and select Analyze.

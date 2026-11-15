@@ -286,3 +286,71 @@ button:disabled { opacity: .4; cursor: default; }
 @media (prefers-reduced-motion: reduce) {
   .map-camera, .map-annotation, .spot-callout, .spot-callout::after, .spot-marker { transition: none; }
 }
+
+.projected-map { position: absolute; width: min(85vh, 90%); aspect-ratio: 1; left: 50%; top: 50%; transform: translate(-50%, -50%); background: #181622; --annotation-scale: 1; }
+.projected-map canvas { width: 100%; height: 100%; }
+.map-controls { position: absolute; top: 20px; right: 20px; display: flex; flex-wrap: wrap; gap: 6px; max-width: 390px; }
+.map-controls button { padding: 8px 12px; border: 1px solid #62596e; border-radius: 6px; background: #292331; color: white; cursor: pointer; }
+.map-controls button:disabled { opacity: .5; cursor: wait; }
+.map-legend { position: absolute; bottom: 12px; left: 20px; padding: 8px; background: #191522df; color: #ded8e6; font-size: 12px; }
+/* Lunar imagery is the basemap; suitability never replaces the surface. */
+.projected-map { width: min(85dvh, 94%); background: #171719; overflow: hidden; touch-action: none; cursor: grab; }
+.projected-map:active { cursor: grabbing; }
+.moon-basemap, .nasa-tile-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.nasa-moon-tile { position: absolute; display: block; max-width: none; user-select: none; }
+.projected-map .spot-callout, .projected-map .spot-marker { cursor: pointer; }
+.map-controls { max-width: min(390px, 95%); z-index: 5; }
+.map-controls button { background: #29292de8; color: #e5e2eb; font-size: 12px; }
+.map-legend { pointer-events: none; font-size: 11px; line-height: 1.7; z-index: 5; }
+.map-legend span { color: #aaa6b3; }
+.terrain-webgl { margin: 0; width: 100%; min-width: 0; }
+.terrain-webgl-host { width: 100%; height: 170px; touch-action: none; border-radius: 7px; overflow: hidden; }
+.terrain-webgl-host canvas { display: block; width: 100%; height: 100%; }
+.terrain-full .terrain-webgl-host { height: 300px; }
+.terrain-webgl figcaption { font-size: 10px; line-height: 1.7; text-align: center; color: #c1bdcb; margin-top: 8px; }
+.terrain-webgl figcaption span { color: #9c97a5; }
+@media (max-width:800px) {
+  .projected-map { width: min(90%, 30dvh); }
+  .map-controls { top: 8px; right: 8px; gap: 3px; max-width: 230px; }
+  .map-controls button { font-size: 10px; padding: 5px 7px; }
+  .map-legend { left: 8px; bottom: 3px; font-size: 9px; padding: 5px; }
+}
+
+.nasa-moon-tile { image-rendering: auto; border: 0; outline: 0; }
+.polar-map-coverage { position: absolute; inset: 0; pointer-events: none; }
+.projected-map { background: #000; }
+
+/* Quiet geographic context, independent of the detailed 2D map. */
+.moon-locator { position: absolute; top: 18px; left: 18px; z-index: 6; width: 154px; padding: 10px 11px; border: 1px solid #595360; border-radius: 11px; background: #29282de8; box-shadow: 0 4px 18px #0004; pointer-events: none; }
+.locator-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; font-weight: 500; color: #ddd8e7; }
+.locator-title > span { padding: 2px 5px; border-radius: 4px; font-size: 9px; background: #a88ae51a; color: #c8b9e8; }
+.locator-globe { width: 100%; height: 128px; }
+.locator-globe canvas { display: block; width: 100%; height: 100%; }
+.locator-caption { display: flex; align-items: center; justify-content: center; gap: 5px; color: #d2c8e5; font-size: 10px; }
+.locator-caption i { width: 6px; height: 6px; border-radius: 2px; background: #b5a2ff; }
+.moon-locator > small { display: block; margin-top: 5px; text-align: center; color: #aaa5b5; font-size: 9px; font-variant-numeric: tabular-nums; }
+.locator-unavailable { color: #aaa5b5; font-size: 10px; text-align: center; }
+@media(max-width:800px){ .moon-locator { top:8px;left:8px;width:108px;padding:7px; } .locator-globe { height:78px; } .locator-title { font-size:9px; } .moon-locator > small { font-size:8px; } }
+
+.loading-state { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 24px 10px; min-height: 80px; color: #c9c2d6; font-size: 12px; line-height: 1.6; }
+.loading-spinner { width: 18px; height: 18px; flex-shrink: 0; border: 2px solid #aaa0bc33; border-top-color: #b29bdc; border-radius: 50%; animation: loading-turn 900ms linear infinite; }
+.terrain-stage { position: relative; }
+.terrain-render-loading { position: absolute; inset: 0; display: grid; place-items: center; background: #252529e6; }
+@keyframes loading-turn { to { transform: rotate(360deg); } }
+@media(prefers-reduced-motion:reduce) { .loading-spinner { animation: none; border-color: #b29bdc; } }
+
+.candidate-updating { display: flex; align-items: center; gap: 9px; margin: 14px 20px; color: #c9c2d6; font-size: 12px; }
+
+.slow-request, .loading-elapsed { display: block; margin-top: 6px; font-size: 11px; font-weight: 400; color: #aaa3b7; }
+.loading-elapsed { font-variant-numeric: tabular-nums; }
+.weight-refresh-notice { padding: 0 20px; }
+
+.region-notice { padding: 0 20px; }
+
+.area-empty { margin: 18px 20px; color: #beb8c9; font-size: 12px; line-height: 1.65; }
+.area-empty h3 { color: #e0dce8; font-size: 14px; line-height: 1.5; font-weight: 500; margin: 0 0 12px; }
+.area-empty p { margin: 9px 0; }
+.exclusion-summary { padding: 10px 12px; border-left: 2px solid #81758e; border-radius: 0 6px 6px 0; background: #ffffff04; }
+.exclusion-summary small { display: block; margin-top: 3px; color: #a59dad; }
+.analysis-boundary { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; }
+.analysis-boundary ellipse { fill: none; stroke: #b7a7d5; stroke-width: 1.5; stroke-dasharray: 7 5; vector-effect: non-scaling-stroke; }

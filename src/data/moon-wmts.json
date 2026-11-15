@@ -1,0 +1,258 @@
+[
+  {
+    "name": "LRO_LOLA_Shade_SPole45_100mp_v04",
+    "url": "https://trek.nasa.gov/tiles/Moon/SP/LRO_LOLA_Shade_SPole45_100mp_v04/1.0.0/default/default028mm",
+    "extent": [
+      -1095930.0,
+      -1095930.0,
+      1095930.0,
+      1095930.0
+    ],
+    "levels": [
+      {
+        "id": "0",
+        "resolution": 8561.953124999987,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 2,
+        "rows": 1
+      },
+      {
+        "id": "1",
+        "resolution": 4280.976562499994,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 4,
+        "rows": 2
+      },
+      {
+        "id": "2",
+        "resolution": 2140.488281249997,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 8,
+        "rows": 4
+      },
+      {
+        "id": "3",
+        "resolution": 1070.2441406249984,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 16,
+        "rows": 8
+      },
+      {
+        "id": "4",
+        "resolution": 535.1220703124992,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 32,
+        "rows": 16
+      }
+    ]
+  },
+  {
+    "name": "LRO_LOLA_Shade_SPole75_30mp_v04",
+    "url": "https://trek.nasa.gov/tiles/Moon/SP/LRO_LOLA_Shade_SPole75_30mp_v04/1.0.0/default/default028mm",
+    "extent": [
+      -457440.0,
+      -457440.0,
+      457440.0,
+      457440.0
+    ],
+    "levels": [
+      {
+        "id": "0",
+        "resolution": 8561.953124999987,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 2,
+        "rows": 1
+      },
+      {
+        "id": "1",
+        "resolution": 4280.976562499994,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 4,
+        "rows": 2
+      },
+      {
+        "id": "2",
+        "resolution": 2140.488281249997,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 8,
+        "rows": 4
+      },
+      {
+        "id": "3",
+        "resolution": 1070.2441406249984,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 16,
+        "rows": 8
+      },
+      {
+        "id": "4",
+        "resolution": 535.1220703124992,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 32,
+        "rows": 16
+      },
+      {
+        "id": "5",
+        "resolution": 267.5610351562496,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 64,
+        "rows": 32
+      },
+      {
+        "id": "6",
+        "resolution": 133.7805175781248,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 128,
+        "rows": 64
+      }
+    ]
+  },
+  {
+    "name": "LRO_LOLA_Shade_SPole875_5mp_v04",
+    "url": "https://trek.nasa.gov/tiles/Moon/SP/LRO_LOLA_Shade_SPole875_5mp_v04/1.0.0/default/default028mm",
+    "extent": [
+      -75840.0,
+      -75840.0,
+      75840.0,
+      75840.0
+    ],
+    "levels": [
+      {
+        "id": "0",
+        "resolution": 8561.953124999987,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 2,
+        "rows": 1
+      },
+      {
+        "id": "1",
+        "resolution": 4280.976562499994,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 4,
+        "rows": 2
+      },
+      {
+        "id": "2",
+        "resolution": 2140.488281249997,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 8,
+        "rows": 4
+      },
+      {
+        "id": "3",
+        "resolution": 1070.2441406249984,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 16,
+        "rows": 8
+      },
+      {
+        "id": "4",
+        "resolution": 535.1220703124992,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 32,
+        "rows": 16
+      },
+      {
+        "id": "5",
+        "resolution": 267.5610351562496,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 64,
+        "rows": 32
+      },
+      {
+        "id": "6",
+        "resolution": 133.7805175781248,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 128,
+        "rows": 64
+      },
+      {
+        "id": "7",
+        "resolution": 66.8902587890624,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 256,
+        "rows": 128
+      },
+      {
+        "id": "8",
+        "resolution": 33.4451293945312,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 512,
+        "rows": 256
+      },
+      {
+        "id": "9",
+        "resolution": 16.7225646972656,
+        "origin": [
+          -1095930.0,
+          1095930.0
+        ],
+        "columns": 1024,
+        "rows": 512
+      }
+    ]
+  }
+]

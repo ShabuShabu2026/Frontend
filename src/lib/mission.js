@@ -74,4 +74,4 @@ export function changedSettings(config) {
   return keys.filter((key) => config[key] !== baseline[key]).length + (manualChanges ?? scoreNames.filter((name) => (name !== 'Other' || includesOther(config.objective)) && config.priorities[name] !== baseline.priorities[name]).length)
 }
 export const percent = (value) => value == null ? '—' : `${(value * 100).toFixed(1)}%`
-export const metric = (value, unit = '') => value == null ? '—' : `${value}${unit}`
+export const metric = (value, unit = '') => value == null ? '—' : `${typeof value === 'number' ? Number(value.toFixed(4)) : value}${unit}`
