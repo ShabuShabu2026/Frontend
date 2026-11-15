@@ -12,6 +12,7 @@ import { objectiveLabel } from './lib/presentation-labels.js'
 import { dateBounds, localWeights, updateMission, validateMission } from './lib/mission'
 import './App.css'
 import './design.css'
+import './responsive.css'
 
 const noServices = {}
 export default function App({ services = noServices }) {
