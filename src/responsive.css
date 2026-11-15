@@ -277,3 +277,11 @@
   .info-dialog-body { padding:20px 18px; }
   .info-dialog-footer { padding:14px 18px; }
 }
+
+/* Range thumbs travel between their inset centres, rather than the track edges. */
+.duration-labels { position:relative; display:block; height:14px; margin:6px 7px 0; }
+.duration-labels > span { position:absolute; transform:translateX(-50%); white-space:nowrap; }
+.duration-labels > span:first-child { left:0; }
+.duration-labels > span:nth-child(2) { left:46.153846%; }
+.duration-labels > span:last-child { left:100%; }
+.home input[type=range]::-moz-range-thumb { width:14px; height:14px; border:0; background:#f4f4f6; }
