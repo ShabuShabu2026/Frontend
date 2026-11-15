@@ -1,25 +1,35 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { metric } from '../lib/mission'
 
 import MoonBasemap from './MoonBasemap.jsx'
 
 import { projectSite } from '../lib/projection.js'
-import { polarExtent, polarRadius, constrainPolarView } from '../lib/polar-view.js'
+import { polarRadius, fitPolarViewport, initialPolarViewport } from '../lib/polar-view.js'
 import { createCandidateIndex, selectAreaCandidates, createRegionQueue, createAreaIndex, summarizeArea, mergeViewportSites } from '../lib/region-candidates.js'
 
 const MoonLocator = lazy(() => import('./MoonLocator.jsx'))
 
 // The map itself covers only the polar cap south of 85°S (about 300 km across).
-const defaultBbox = polarExtent
 
 export default function LunarMap({ result, selected, focused, onSelect, onReset, services, onRegion, onRegionStatus }) {
   const surface = useRef(null)
+  const container = useRef(null)
+  const [aspect, setAspect] = useState(1)
+  useLayoutEffect(() => {
+    const node = container.current
+    const measure = () => { const { width, height } = node.getBoundingClientRect(); if (width && height) setAspect(width / height) }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
   const drag = useRef(null)
   const cameraAnimation = useRef(null)
   const [viewport, updateViewport] = useState(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const bbox = viewport ?? defaultBbox
+  const defaultBbox = useMemo(() => initialPolarViewport(aspect), [aspect])
+  const bbox = useMemo(() => viewport ? fitPolarViewport(viewport, aspect) : defaultBbox, [viewport, aspect, defaultBbox])
   const analysisId = result?.analysisId
   const [initialCandidates] = useState(() => result?.candidates ?? [])
   const analysisSites = result?.sites
@@ -34,20 +44,23 @@ export default function LunarMap({ result, selected, focused, onSelect, onReset,
     return ()=>{queue.current?.dispose();queue.current=null}
   },[analysisId,services,onRegion,onRegionStatus])
   useEffect(()=>{
-    if(!viewport||!queue.current)return
-    const local=selectAreaCandidates(index,viewport)
+    if(!queue.current)return
+    const local=selectAreaCandidates(index,bbox)
+    if(!viewport) { if(local)onRegion(local); return }
     // The viewport is not clipped to the initial analysis response's bbox.
-    queue.current.update({analysisId,bbox:viewport,summary},local)
-  },[analysisId,viewport,services,onRegion,onRegionStatus,result?.bbox,index,summary])
+    queue.current.update({analysisId,bbox,summary},local)
+  },[analysisId,viewport,services,onRegion,onRegionStatus,result?.bbox,index,summary,bbox])
+  const currentAspect = useRef(aspect)
+  useLayoutEffect(() => { currentAspect.current = aspect }, [aspect])
   const currentBox = useRef(bbox)
   useEffect(() => { currentBox.current = bbox }, [bbox])
-  function setViewport(next) {
-    const box = next ? constrainPolarView(next) : null
-    currentBox.current = box ?? defaultBbox
+  const setViewport = useCallback((next) => {
+    const box = next ? fitPolarViewport(next, currentAspect.current) : null
+    currentBox.current = box ?? initialPolarViewport(currentAspect.current)
     updateViewport(box)
-  }
+  }, [])
   function moveCamera(target, animate = false) {
-    target = constrainPolarView(target)
+    target = fitPolarViewport(target, aspect)
     cancelAnimationFrame(cameraAnimation.current)
     if (!animate || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setViewport(target); return }
     const initial = currentBox.current, start = performance.now()
@@ -63,8 +76,8 @@ export default function LunarMap({ result, selected, focused, onSelect, onReset,
     if (!focused || !selected || !result?.bbox) return
     const point = Number.isFinite(selected.x) ? selected : projectSite(selected.latitude, selected.longitude)
     const width = Math.max(4000,(result.bbox.xmax - result.bbox.xmin) / 6)
-    const height = width * (result.bbox.ymax - result.bbox.ymin) / (result.bbox.xmax - result.bbox.xmin)
-    const initial = currentBox.current, target = { xmin: point.x-width/2,xmax:point.x+width/2,ymin:point.y-height/2,ymax:point.y+height/2 }
+    const height = width / aspect
+    const initial = currentBox.current, target = fitPolarViewport({ xmin: point.x-width/2,xmax:point.x+width/2,ymin:point.y-height/2,ymax:point.y+height/2 }, aspect)
     const start=performance.now(), reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const step=(now)=>{
       const progress=reduced?1:Math.min(1,(now-start)/650), eased=1-(1-progress)**3
@@ -73,7 +86,7 @@ export default function LunarMap({ result, selected, focused, onSelect, onReset,
     }
     cameraAnimation.current=requestAnimationFrame(step)
     return ()=>cancelAnimationFrame(cameraAnimation.current)
-  }, [focused, selected, result?.bbox])
+  }, [focused, selected, result?.bbox, aspect, setViewport])
   const mapCandidates = result?.candidates ?? []
   const markers = selected && !mapCandidates.some((site) => site.id === selected.id) ? [...mapCandidates, selected] : mapCandidates
   function zoom(factor, dx = 0, dy = 0) {
@@ -100,7 +113,7 @@ export default function LunarMap({ result, selected, focused, onSelect, onReset,
     }
     node.addEventListener('wheel',wheel,{passive:false})
     return ()=>{node.removeEventListener('wheel',wheel);cancelAnimationFrame(cameraAnimation.current)}
-  }, [])
+  }, [setViewport])
   function startDrag(event) {
     if(event.target.closest('button')||event.button!==0)return
     cancelAnimationFrame(cameraAnimation.current)
@@ -113,8 +126,8 @@ export default function LunarMap({ result, selected, focused, onSelect, onReset,
     const dx=(event.clientX-x)/rect.width*(box.xmax-box.xmin),dy=(event.clientY-y)/rect.height*(box.ymax-box.ymin)
     setViewport({xmin:box.xmin-dx,xmax:box.xmax-dx,ymin:box.ymin+dy,ymax:box.ymax+dy})
   }
-  return <section className={`lunar-map ${result ? 'candidates-map' : 'configuration'}`} aria-label="Lunar South Pole Map">
-      <div className="projected-map" style={{aspectRatio: (bbox.xmax-bbox.xmin)/(bbox.ymax-bbox.ymin)}} ref={surface} onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={()=>{drag.current=null}} onPointerCancel={()=>{drag.current=null}}>
+  return <section className={`lunar-map ${result ? 'candidates-map' : 'configuration'}`} aria-label="Lunar South Pole Map" ref={container}>
+      <div className="projected-map" ref={surface} onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={()=>{drag.current=null}} onPointerCancel={()=>{drag.current=null}}>
         <div className="polar-map-coverage" style={{ clipPath: `ellipse(${polarRadius / (bbox.xmax-bbox.xmin) * 100}% ${polarRadius / (bbox.ymax-bbox.ymin) * 100}% at ${-bbox.xmin / (bbox.xmax-bbox.xmin) * 100}% ${bbox.ymax / (bbox.ymax-bbox.ymin) * 100}%)` }}><MoonBasemap bbox={bbox} /></div>
 
         {markers.map((site) => {

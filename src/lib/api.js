@@ -40,7 +40,16 @@ export function createApiServices({ baseUrl = import.meta.env?.VITE_API_BASE_URL
       ...(body ? { body: JSON.stringify(body) } : {}),
     }, retries)
   }
+  const summaries = new Map()
   return {
+    async getSiteSummary({ analysisId, siteId }, { signal } = {}) {
+      const key = JSON.stringify([analysisId, siteId])
+      if (summaries.has(key)) return summaries.get(key)
+      const data = await request(`/analyses/${encodeURIComponent(analysisId)}/sites/${encodeURIComponent(siteId)}`, { signal })
+      const summary = { ...visibilitySummary(data.visibility), bestLandingDate: data.bestLandingDate }
+      if (!signal?.aborted) { summaries.set(key, summary); if (summaries.size > 500) summaries.delete(summaries.keys().next().value) }
+      return summary
+    },
     async getWeights(config, { signal } = {}) {
       const data = await request('/weights', { signal, query: { ...missionInputs(config), importanceWeights: scoreNames.map((name) => config.priorities[name]).join(',') } })
       return { weights: named(data.normalizedWeights), priorities: named(data.importance) }
@@ -74,7 +83,7 @@ export function createApiServices({ baseUrl = import.meta.env?.VITE_API_BASE_URL
         emit(patch); return patch
       }).catch((error) => { emit({ overviewStatus: 'error', overviewError: error.message }); throw error })
       const terrainPromise = request(`${path}/terrain`, { signal }).then((data) => {
-        const terrain = { elevations: data.heights ?? data.elevationsM, spacing: data.resolution_m ?? data.gridSpacingM, coordinateSystem: data.coordinate_system?.crs_wkt ?? data.crs }
+        const terrain = { elevations: data.heights ?? data.elevationsM, spacing: data.resolution_m ?? data.gridSpacingM, coordinateSystem: data.coordinate_system?.crs_wkt ?? data.crs, geometry: data.coordinate_system, referenceRadius: data.elevation_reference?.radius_m ?? 1737400 }
         const hasSamples = Array.isArray(terrain.elevations) && terrain.elevations.some((row) => Array.isArray(row) && row.some(Number.isFinite))
         const patch = { terrain: hasSamples ? terrain : null, terrainStatus: hasSamples ? 'ready' : 'empty', terrainError: '' }
         emit(patch); return patch

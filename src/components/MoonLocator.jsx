@@ -6,6 +6,7 @@ import { createLocatorCamera, fitLocatorCamera } from '../lib/locator-camera.js'
 export default function MoonLocator({ bbox }) {
   const host = useRef(null)
   const model = useRef(null)
+  const indicator = useRef(null)
   const [unavailable,setUnavailable] = useState(false)
   const center = unprojectSite((bbox.xmin+bbox.xmax)/2,(bbox.ymin+bbox.ymax)/2)
   useEffect(()=>{
@@ -35,7 +36,16 @@ export default function MoonLocator({ bbox }) {
     const dotGeometry=new THREE.SphereGeometry(.025,12,8)
     const dotMaterial=new THREE.MeshBasicMaterial({color:0xe8dbff})
     const dot=new THREE.Mesh(dotGeometry,dotMaterial);scene.add(dot)
-    const draw=()=>renderer.render(scene,camera)
+    const draw=()=>{
+      renderer.render(scene,camera)
+      // A screen-sized ring stays legible while the real footprint shrinks on zoom.
+      const point=dot.position.clone().project(camera)
+      if(indicator.current){
+        indicator.current.style.left=`${(point.x+1)*50}%`
+        indicator.current.style.top=`${(1-point.y)*50}%`
+        indicator.current.hidden=false
+      }
+    }
     model.current={ update(box) {
       lineGeometry.setAttribute('position',new THREE.Float32BufferAttribute(viewportOutline(box),3));lineGeometry.computeBoundingSphere()
       const positions=[],indices=[],steps=12
@@ -64,5 +74,5 @@ export default function MoonLocator({ bbox }) {
     return ()=>{disposed=true;model.current=null;observer.disconnect();images.forEach(img=>{img.onload=null});texture?.dispose();globeGeometry.dispose();globeMaterial.dispose();lineGeometry.dispose();lineMaterial.dispose();patchGeometry.dispose();patchMaterial.dispose();dotGeometry.dispose();dotMaterial.dispose();renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove()}
   },[])
   useEffect(()=>{model.current?.update(bbox)},[bbox])
-  return <aside className="moon-locator" aria-label="Current map location on the Moon"><div className="locator-title">Moon overview<span>3D</span></div><div className="locator-globe" ref={host}/>{unavailable&&<p className="locator-unavailable">3D overview unavailable</p>}<div className="locator-caption"><i/>Current view</div><small>{Math.abs(center.latitude).toFixed(1)}°{center.latitude<0?'S':'N'} · {Math.abs(center.longitude).toFixed(1)}°{center.longitude<0?'W':'E'}</small></aside>
+  return <aside className="moon-locator" aria-label="Current map location on the Moon"><div className="locator-title">Moon overview<span>3D</span></div><div className="locator-globe" ref={host}><span className="locator-position-indicator" ref={indicator} hidden aria-hidden="true" /></div>{unavailable&&<p className="locator-unavailable">3D overview unavailable</p>}<div className="locator-caption"><i/>Current view</div><small>{Math.abs(center.latitude).toFixed(1)}°{center.latitude<0?'S':'N'} · {Math.abs(center.longitude).toFixed(1)}°{center.longitude<0?'W':'E'}</small></aside>
 }

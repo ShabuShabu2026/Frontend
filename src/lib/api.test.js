@@ -128,3 +128,19 @@ test('canceled site requests never publish stale progress',async()=>{
  await assert.rejects(promise,{name:'AbortError'})
  assert.deepEqual(patches,[])
 })
+
+test('candidate summaries read visibility from overview only and reuse successful reads', async () => {
+  const urls = []
+  const services = createApiServices({ baseUrl: 'https://example.test', fetchImpl: async url => {
+    urls.push(url)
+    return new Response(JSON.stringify({ visibility: { sunlightRatio: .92, earthVisibleRatio: .82, longestDarknessHours: 2, longestCommBlackoutHours: 3 }, bestLandingDate: '2027-03-06' }), { status: 200 })
+  } })
+  const summary = await services.getSiteSummary({ analysisId: 'analysis-1', siteId: 'site-1' })
+  assert.equal(summary.sunVisibility, .92)
+  assert.equal(summary.earthVisibility, .82)
+  assert.equal(summary.longestDarkness, 2)
+  await services.getSiteSummary({ analysisId: 'analysis-1', siteId: 'site-1' })
+  assert.deepEqual(urls, ['https://example.test/analyses/analysis-1/sites/site-1'])
+  await services.getSiteSummary({ analysisId: 'analysis-2', siteId: 'site-1' })
+  assert.equal(urls.length, 2)
+})
