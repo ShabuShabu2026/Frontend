@@ -11,7 +11,7 @@ test('specified defaults and date window', () => {
   assert.equal(defaults.searchRange, 7)
   assert.equal(defaults.uncrewedConstraints, false)
   assert.deepEqual(validateMission(defaults), [])
-  assert.deepEqual(dateBounds(defaults), { min: '2027-01-08', max: '2027-12-18' })
+  assert.deepEqual(dateBounds(defaults), { min: '2026-01-08', max: '2028-12-19' })
   assert.equal(changedSettings(defaults), 0)
 })
 test('all objectives normalize with Other only for the three scored objectives', () => {
@@ -36,7 +36,7 @@ test('mission changes update dependent priorities and sunlight ratio', () => {
   assert.equal(changedSettings({ ...config, slopeLimit: 6 }), 1)
 })
 test('invalid inputs and complete date windows are rejected', () => {
-  for (const override of [{ landingDate: '2027-01-01' }, { landingDate: '2027-12-31' }, { stayDuration: 1.5 }, { stayDuration: 1e9 }, { slopeLimit: 16 }, { sunlightRatio: 101 }]) {
+  for (const override of [{ landingDate: '2026-01-07' }, { landingDate: '2028-12-20' }, { landingDate: '2027-02-30' }, { stayDuration: 1.5 }, { stayDuration: 1e9 }, { slopeLimit: 16 }, { sunlightRatio: 101 }]) {
     assert.ok(validateMission({ ...defaults, ...override }).length > 0)
   }
 })
@@ -76,4 +76,10 @@ test('percentage sliders preserve the selected position and rebalance every othe
   assert.ok(Math.abs(restored.Flatness - .2) < 1e-10)
   assert.deepEqual(localWeights({ ...defaults, manualWeights: restored }), restored)
   assert.equal(updateMission({ ...defaults, manualWeights: restored }, 'power', 'High').manualWeights, null)
+})
+
+test('arrival boundaries are inclusive and independent of the selected year', () => {
+  for (const landingDate of ['2026-01-08', '2027-01-01', '2027-12-31', '2028-02-29', '2028-12-19']) assert.deepEqual(validateMission({ ...defaults, landingDate }), [])
+  assert.deepEqual(dateBounds({ ...defaults, searchRange: 0, stayDuration: 1 }), { min: '2026-01-08', max: '2028-12-19' })
+  assert.ok(validateMission({ ...defaults, landingDate: '2028-12-19', stayDuration: 7 }).some(error => error.includes('flexible arrival range')))
 })

@@ -1,3 +1,5 @@
+import { landingDateRange, selectableLandingDate } from './calendar.js'
+
 export const objectives = [
   'General',
   'Understanding the character and origin of lunar polar volatiles',
@@ -46,17 +48,16 @@ export function redistributeWeights(weights, selected, value) {
       (1 - target) * (total > 0 ? weights[name] / total : 1 / others.length),
   ]))
 }
-const dateAt = (offset) => new Date(Date.UTC(2027, 0, 1 + offset)).toISOString().slice(0, 10)
-export function dateBounds(config) {
-  const range = Number(config.searchRange) || 0
-  const duration = Math.min(365, Math.max(1, Number(config.stayDuration) || 1))
-  return { min: dateAt(range), max: dateAt(364 - duration - range) }
-}
+export function dateBounds() { return { ...landingDateRange } }
 export function validateMission(config) {
   const errors = []
-  const bounds = dateBounds(config)
-  if (!Number.isInteger(config.stayDuration) || config.stayDuration < 1 || config.stayDuration > 364) errors.push('Stay Duration must be a positive integer that fits within the 2027 analysis window.')
-  if (!config.landingDate || config.landingDate < bounds.min || config.landingDate > bounds.max) errors.push('The landing date, stay duration and search range must fit within January 1–December 31, 2027.')
+  if (!Number.isInteger(config.stayDuration) || config.stayDuration < 1 || config.stayDuration > 364) errors.push('Stay Duration must be a positive integer between 1 and 364 days.')
+  if (!selectableLandingDate(config.landingDate)) errors.push('Choose an arrival date between January 8, 2026 and December 19, 2028.')
+  else {
+    const arrival = Date.parse(`${config.landingDate}T00:00:00Z`), range = Number(config.searchRange) || 0
+    const first = arrival - range * 86400000, last = arrival + (Number(config.stayDuration) - 1 + range) * 86400000
+    if (first < Date.parse('2026-01-01T00:00:00Z') || last > Date.parse('2028-12-31T00:00:00Z')) errors.push('The stay and flexible arrival range must fit within January 2026–December 2028.')
+  }
   if (config.slopeLimit < 0 || config.slopeLimit > 15 || !Number.isFinite(config.slopeLimit)) errors.push('The slope limit must be between 0° and 15°.')
   if (!Number.isFinite(config.sunlightRatio) || config.sunlightRatio < 0 || config.sunlightRatio > 100) errors.push('Required Sunlight Ratio must be between 0% and 100%.')
   if (config.missionType === 'Uncrewed' && config.uncrewedConstraints) {

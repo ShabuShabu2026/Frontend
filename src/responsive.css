@@ -223,3 +223,57 @@
   .summary-date input { width:120px; }
   .topbar .search-summary button { padding:6px 10px; }
 }
+.calendar-range { margin:12px 0 0; font-size:11px; color:#969ba6; }
+.calendar-month-heading { display:flex; justify-content:center; gap:8px; margin:8px 0 12px; }
+.calendar-month-heading button, .calendar-period-heading button { padding:8px 10px; border-radius:8px; background:#ffffff09; font-size:13px; }
+.calendar-month-heading button:hover, .calendar-period-heading button:hover { background:#ffffff16; }
+.calendar-month-heading span { color:#8c9098; font-size:10px; }
+.calendar-grid button:disabled { color:#454952; background:#ffffff02; opacity:1; cursor:not-allowed; }
+.calendar-grid button:disabled:hover { background:#ffffff02; }
+.calendar-grid button:disabled.chosen { color:#454952; background:#ffffff02; }
+.calendar-month-options, .calendar-year-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.calendar-month-options button, .calendar-year-options button { min-height:48px; padding:12px 6px; border-radius:10px; border:1px solid #ffffff1a; background:transparent; font-size:13px; }
+.calendar-month-options button:hover, .calendar-year-options button:hover { background:#ffffff0d; }
+.calendar-month-options button[aria-pressed=true], .calendar-year-options button[aria-pressed=true] { border-color:#96bea5; background:#96bea51a; }
+.calendar-period-heading { display:flex; justify-content:space-between; align-items:center; margin:12px 0; }
+.calendar-period-picker h4 { font-size:14px; }
+.calendar-mode-back { font-size:12px; color:#c3c6cc; }
+@media(max-width:480px) { .calendar-month-heading button { min-height:40px; }.calendar-range { line-height:1.5; }.calendar-month-options { gap:8px; } }
+
+.home-links { justify-content:flex-end; }
+@media(max-width:800px) { .home-links { align-items:flex-end; } }
+/* Home navigation content follows the project README. */
+.info-overlay > .info-dialog { width:min(680px,100%); max-width:680px; max-height:min(820px,calc(100dvh - 48px)); padding:0; display:flex; flex-direction:column; overflow:hidden; border-radius:18px; }
+.info-dialog-header { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:20px 24px; border-bottom:1px solid #ffffff14; flex-shrink:0; }
+.info-dialog-header h3 { margin:0; font-size:20px; font-weight:600; }
+.info-dialog-header button { width:36px; height:36px; border-radius:8px; background:#ffffff08; color:#b4b7bf; }
+.info-dialog-header button:hover { background:#ffffff14; }
+.info-dialog-body { overflow-y:auto; overscroll-behavior:contain; padding:24px; min-height:0; scrollbar-width:thin; }
+.info-dialog .info-intro { margin:0 0 24px; font-size:16px; line-height:1.6; color:#d4d6dc; }
+.info-dialog h4 { margin:0 0 8px; font-size:14px; font-weight:600; }
+.info-dialog p { margin:0 0 14px; font-size:13px; line-height:1.7; }
+.info-block { margin-top:24px; padding-top:20px; border-top:1px solid #ffffff12; }
+.info-steps { padding:0 0 0 24px; margin:0; }
+.info-steps > li { padding-left:8px; margin-bottom:20px; }
+.info-steps > li::marker { color:#96bea5; font-size:14px; font-weight:600; }
+.info-sources { list-style:none; padding:0; margin:0; display:grid; gap:16px; }
+.info-sources li { min-width:0; }
+.info-dialog a { color:#b8d2c2; text-decoration:none; overflow-wrap:anywhere; }
+.info-dialog a:hover { text-decoration:underline; }
+.info-sources a { display:inline-block; font-size:13px; line-height:1.5; font-weight:500; }
+.info-sources p { margin:4px 0 0; font-size:12px; }
+.info-dialog .info-eyebrow { color:#96bea5; font-size:11px; letter-spacing:.7px; }
+.info-dialog .info-project-name { font-size:32px; letter-spacing:-.7px; margin:8px 0 6px; }
+.info-team { display:grid; gap:14px; margin:16px 0 24px; }
+.info-team > div { display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px 16px; }
+.info-team dt { font-size:13px; }
+.info-team dd { margin:0; color:#8c9098; font-size:12px; }
+.info-dialog-footer { padding:16px 24px; border-top:1px solid #ffffff14; flex-shrink:0; font-size:12px; }
+@media(max-width:480px) {
+  .info-overlay > .info-dialog { max-height:calc(100dvh - 32px); }
+  .info-dialog-header { padding:14px 18px; }
+  .info-dialog-header h3 { font-size:18px; }
+  .info-dialog-header button { width:40px; height:40px; }
+  .info-dialog-body { padding:20px 18px; }
+  .info-dialog-footer { padding:14px 18px; }
+}
