@@ -1,0 +1,11 @@
+.git
+.agents
+.codex
+.aws
+.deploy
+docs
+node_modules
+dist
+*.log
+.env*
+src/**/*.test.js
