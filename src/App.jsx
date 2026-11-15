@@ -1,74 +1,86 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import Configuration from './components/Configuration'
+import SiteDetails from './components/SiteDetails'
+import LunarMap from './components/LunarMap'
+import { dateBounds, defaults, localWeights, metric, updateMission, validateMission } from './lib/mission'
 import './App.css'
 
-const image = (name) => `/figma/${name}`
-const initial = { Communication: 3, Other: 3, Flatness: 5, Roughness: 5, Sunlight: 3 }
-const positions = [[279,220],[187,306],[237,495],[287,613],[435,520],[656,306],[766,588],[404,785],[656,745]]
-// 디자인에 있는 예시 데이터입니다. 실제 분석 API를 연결할 때 교체합니다.
-const sites = Array.from({ length: 10 }, (_, i) => ({ id: i + 1, name: 'LSP-0347', score: i === 9 ? '-' : '79%', status: i === 2 ? 'Marginal' : 'Feasible', color: i < 3 ? 'green' : i < 6 ? 'amber' : i < 9 ? 'red' : 'gray' }))
-function Field({ label, children, className = '' }) {
-  return <label className={`field ${className}`}><span>{label}</span>{children}</label>
+const noServices = {}
+function CandidateList({ sites, selected, onSelect, analyzed }) {
+  return <><h2>Candidate Sites</h2>{!sites.length && <p className="empty-state">{analyzed ? 'No candidate sites are available in this area.' : 'Run an analysis to view candidate sites.'}</p>}<div className="candidates">{sites.map((site, index) => <button className={`candidate ${selected?.id === site.id ? 'candidate-selected' : ''}`} key={site.id} onClick={() => onSelect(site)}><span className="rank">{site.rank ?? index + 1}</span><span className="candidate-identity"><strong>{site.id}</strong><small>{metric(site.latitude, '°')}, {metric(site.longitude, '°')}</small></span><span className={`score ${site.passed === false ? 'gray' : site.status === 'Marginal' ? 'amber' : 'green'}`}>{metric(site.suitability, '%')}</span><span className="description">{site.status ?? '—'}<br />{(site.tags ?? []).slice(0,2).join(' · ')}<small>Absolute Constraints: {site.passed == null ? '—' : site.passed ? 'Passed' : 'Not passed'}</small>{(site.exclusionReasons ?? []).map((reason) => <small key={reason}>{reason}</small>)}</span></button>)}</div></>
 }
-function Toggle({ label, checked, onChange }) {
-  return <button type="button" className="toggle" role="switch" aria-label={label} aria-checked={checked} onClick={() => onChange(!checked)}>{checked ? <img src={image('imgGroup2.svg')} alt="" /> : <span />}</button>
-}
-function Configuration({ onAnalyze }) {
-  const [priorities, setPriorities] = useState(initial)
-  const [constraints, setConstraints] = useState({ slope: true, crewed: true, uncrewed: true })
-  const [criteria, setCriteria] = useState({ 'Darkness Criterion': 'Medium', 'Earth Visibility Criterion': 'Medium', 'Panel / Antenna Height': '5 m' })
-  const [days, setDays] = useState(20)
-  const total = Object.values(priorities).reduce((a, b) => a + b, 0)
-  const toggle = (key, label) => <Toggle label={label} checked={constraints[key]} onChange={(value) => setConstraints({ ...constraints, [key]: value })} />
-  return <form onSubmit={(event) => { event.preventDefault(); onAnalyze() }}>
-    <h2>Mission Configuration</h2>
-    <div className="mission-fields">
-      <Field label="Landing Date"><input type="date" defaultValue="2026-11-15" required /></Field>
-      <Field label="Stay Duration"><input type="number" aria-label="Stay Duration in days" min="1" max="365" defaultValue="14" required /></Field>
-      {[
-        ['Mission Type', ['Uncrewed', 'Crewed']], ['Mission Objective', ['Exploration', 'Research', 'Resource extraction']], ['Power Requirement', ['Medium', 'Low', 'High']], ['Communication Dependency', ['Medium', 'Low', 'High']],
-      ].map(([label, options]) => <Field key={label} label={label}><select>{options.map((option) => <option key={option}>{option}</option>)}</select></Field>)}
-    </div>
-    <h2>Auto Weight Summary</h2>
-    <div className="weights">{['Communication','Flatness','Roughness','Sunlight','Other'].map((name) => <div className="weight" key={name}><span>{name}</span><div className="weight-track"><div style={{ width: `${priorities[name] / total * 100}%` }} /></div><output>{Math.floor(priorities[name] / total * 100)}%</output></div>)}</div>
-    <h2>Advanced Settings</h2>
-    <div className="advanced">
-      <div className="constraint slope"><span>Absolute Slope Constraint</span>{toggle('slope','Absolute Slope Constraint')}<label htmlFor="slope">Limit</label><input id="slope" type="number" min="0" max="90" defaultValue="15" disabled={!constraints.slope} required /></div>
-      <div className="constraint crewed"><span>Crewed Sunlight Absolute Constraint</span>{toggle('crewed','Crewed Sunlight Absolute Constraint')}</div>
-      <div className="constraint uncrewed"><span>Uncrewed Absolute Constraint</span>{toggle('uncrewed','Uncrewed Absolute Constraint')}</div>
-      <Field label="Uncrewed Absolute Constraint" className="indented"><input type="number" min="0" defaultValue="48" disabled={!constraints.uncrewed} required /></Field>
-      <Field label="Max Communication Blackout" className="indented"><input type="number" min="0" defaultValue="24" disabled={!constraints.uncrewed} required /></Field>
-      <p className="priority-title">Priority Bars (1 - 5)</p>
-      <div className="priorities">{Object.entries(priorities).map(([name, value]) => <div className="priority" key={name}><label htmlFor={`priority-${name}`}>{name}</label><input id={`priority-${name}`} type="range" style={{ '--progress': `${(value - 1) / 4 * 100}%` }} min="1" max="5" value={value} onChange={(event) => setPriorities({ ...priorities, [name]: Number(event.target.value) })} /><output>{value}</output></div>)}</div>
-      <Field label="Required Sunlight Ratio" className="criteria"><input type="number" min="0" max="100" defaultValue="80" required /></Field>
-      {Object.entries(criteria).map(([label, value]) => <div className="field criteria" key={label}><span>{label}</span><div className="segmented" role="group" aria-label={label}>{(label.includes('Height') ? ['1 m','5 m','10 m'] : ['Low','Medium','High']).map((option) => <button type="button" key={option} aria-pressed={value === option} className={value === option ? 'active' : ''} onClick={() => setCriteria({ ...criteria, [label]: option })}>{option}</button>)}</div></div>)}
-      <div className="field criteria search-range"><label htmlFor="days">Landing Date Search Range</label><div><input id="days" style={{ '--progress': `${days / 30 * 100}%` }} type="range" min="0" max="30" value={days} aria-valuetext={`${days} days`} onChange={(event) => setDays(Number(event.target.value))} /><output>{days}</output></div></div>
-      <button className="analyze" type="submit"><img src={image('imgSearch.svg')} alt="" />Analyze Landing Sites</button>
-    </div>
-  </form>
-}
-function CandidateList({ onSelect }) {
-  return <><h2>Candidate Sites</h2><div className="candidates">{sites.map((site) => <button className="candidate" key={site.id} onClick={() => onSelect(site)}><span className="rank">{site.id}</span><span>{site.name}</span><span className={`score ${site.color}`}>{site.score}</span><span className="description">{site.status} · High sunlight<br />· Low roughness</span></button>)}</div></>
-}
-function LunarMap({ view, selected, onSelect }) {
-  const detail = view === 'detail'
-  return <section className={`lunar-map ${view}`} aria-label="Lunar south pole map">{view === 'configuration' ? <img className="moon" src={image('imgImage1.png')} alt="Lunar south pole" /> : <div className="terrain">
-    <img className="terrain-image" src={image(detail ? 'detailimgImage2.png' : 'listimgImage2.png')} alt="Lunar south pole crater terrain" />
-    {positions.map(([x,y], index) => {
-      const site = sites[index]
-      const colorAsset = index < 3 ? '66' : [3,6,8].includes(index) ? '69' : '70'
-      return <button key={site.id} className={`map-site ${selected?.id === site.id ? 'selected' : ''}`} style={{ left: `${x / 10}%`, top: `${y / 9.26}%` }} aria-label={`Candidate ${site.id}, ${site.name}, ${site.score}`} onClick={() => onSelect(site)}>
-        <img className="marker" src={image(`${detail ? 'detail' : 'list'}imgEllipse${colorAsset}.svg`)} alt="" />
-        {detail && <span className="callout"><img className="callout-tail" src={image(selected?.id === site.id ? 'detailimgUnion1.svg' : 'detailimgUnion.svg')} alt="" /><strong>{site.name}</strong><span><b>{site.status}</b><b>{site.score}</b></span></span>}
-      </button>
-    })}
-  </div>}</section>
-}
-export default function App() {
-  // state가 바뀌면 React가 해당 화면을 다시 그립니다.
-  const [view, setView] = useState('configuration')
+export default function App({ services = noServices }) {
+  const previewDetails = new URLSearchParams(window.location.search).get('preview') === 'details'
+  const [view, setView] = useState(previewDetails ? 'detail' : new URLSearchParams(window.location.search).get('preview') === 'candidates' ? 'candidates' : 'configuration')
+  const [config, setConfig] = useState(defaults)
+  const [result, setResult] = useState(null)
   const [selected, setSelected] = useState(null)
-  const selectSite = (site) => { setSelected(site); setView('detail') }
-  return <><header className="topbar">{view !== 'configuration' && <nav aria-label="Screen navigation"><button onClick={() => setView('configuration')}>← Mission Configuration</button>{view === 'detail' && <button onClick={() => setView('candidates')}>← Candidate Sites</button>}<span className="demo-label">Design preview · Sample results</span></nav>}</header>
-    <main className="workspace"><aside className="sidebar"><div hidden={view !== 'configuration'}><Configuration onAnalyze={() => setView('candidates')} /></div>{view === 'candidates' && <CandidateList onSelect={selectSite} />}{view === 'detail' && <><h2>Selected Site Details</h2><h1 className="selected-name">{selected.name}</h1></>}</aside><LunarMap view={view} selected={selected} onSelect={selectSite} /></main>
-  </>
+  const [detail, setDetail] = useState(null)
+  const [detailDate, setDetailDate] = useState(defaults.landingDate)
+  const [detailError, setDetailError] = useState('')
+  const [detailBusy, setDetailBusy] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [errors, setErrors] = useState([])
+  const [weightResult, setWeightResult] = useState(null)
+  const [weightError, setWeightError] = useState('')
+  const [analyzedConfig, setAnalyzedConfig] = useState(null)
+  const analysisRequest = useRef(0)
+  const weightInputs = JSON.stringify({ missionType: config.missionType, power: config.power, communication: config.communication, objective: config.objective, priorities: config.priorities, manualWeights: config.manualWeights })
+  useEffect(() => {
+    if (!services.getWeights) return
+    const controller = new AbortController()
+    const timer = setTimeout(async () => {
+      try {
+        const response = await services.getWeights(JSON.parse(weightInputs), { signal: controller.signal })
+        if (!controller.signal.aborted) { setWeightResult({ key: weightInputs, ...response }); setWeightError('') }
+      } catch (error) { if (!controller.signal.aborted) setWeightError(error.message || 'Unable to load automatic weights.') }
+    }, 150)
+    return () => { clearTimeout(timer); controller.abort() }
+  }, [services, weightInputs])
+  const weights = config.manualWeights ?? (weightResult?.key === weightInputs ? weightResult.weights : localWeights(config))
+  async function analyze(nextConfig = config) {
+    const validation = validateMission(nextConfig)
+    if (validation.length) { setErrors(validation); return }
+    if (!services.analyze) { setErrors(['Analysis is not connected. No results have been generated.']); return }
+    const request = ++analysisRequest.current
+    setBusy(true); setErrors([]); setResult(null); setSelected(null); setDetail(null)
+    try {
+      const response = await services.analyze(nextConfig)
+      if (request !== analysisRequest.current) return
+      setResult(response); setAnalyzedConfig(nextConfig); setSelected(null); setDetail(null); setView('candidates')
+      if (response.weights) setWeightResult({ key: JSON.stringify({ missionType: nextConfig.missionType, power: nextConfig.power, communication: nextConfig.communication, objective: nextConfig.objective, priorities: nextConfig.priorities, manualWeights: nextConfig.manualWeights }), weights: response.weights, priorities: response.priorities })
+    } catch (error) { if (request === analysisRequest.current) setErrors([error.message || 'Analysis failed. Please try again.']) }
+    finally { if (request === analysisRequest.current) setBusy(false) }
+  }
+  function update(key, value) {
+    const next = updateMission(config, key, value)
+    setConfig(next); setErrors([]); ++analysisRequest.current; setBusy(false)
+    // Changing the date reruns the same analysis with the new landing date.
+    if (key === 'landingDate' && result) { setResult(null); setSelected(null); setDetail(null); analyze(next) }
+    else if (result) { ++analysisRequest.current; setBusy(false); setResult(null); setAnalyzedConfig(null); setSelected(null); setDetail(null) }
+  }
+  function selectSite(site) {
+    setSelected(site); setDetail(null); setDetailDate((analyzedConfig ?? config).landingDate); setView('detail')
+  }
+  useEffect(() => {
+    if (!selected || !services.getSiteDetails) return
+    const controller = new AbortController()
+    Promise.resolve().then(() => {
+      if (controller.signal.aborted) return
+      setDetailBusy(true); setDetail(null); setDetailError('')
+      return services.getSiteDetails({ analysisId: result?.analysisId, siteId: selected.id, latitude: selected.latitude, longitude: selected.longitude, landingDate: detailDate }, { signal: controller.signal })
+    }).then((response) => { if (!controller.signal.aborted) setDetail(response) })
+      .catch((error) => { if (!controller.signal.aborted) setDetailError(error.message || 'Unable to load site details.') })
+      .finally(() => { if (!controller.signal.aborted) setDetailBusy(false) })
+    return () => controller.abort()
+  }, [services, selected, result?.analysisId, detailDate])
+  return <><header className="topbar"><nav aria-label="Screen navigation">{view !== 'configuration' && <button onClick={() => setView('configuration')}>← Mission Configuration</button>}{view === 'detail' && <button onClick={() => setView('candidates')}>← Candidate Sites</button>}{view !== 'configuration' && <label className="header-date">Landing Date<input type="date" value={config.landingDate} min={dateBounds(config).min} max={dateBounds(config).max} disabled={busy} onChange={(event) => update('landingDate', event.target.value)} /></label>}</nav></header>
+    <main className="workspace"><aside className="sidebar">
+      <div className="sidebar-content">
+        <div className="configuration-panel" hidden={view !== 'configuration'}><Configuration config={config} update={update} weights={weights} onAnalyze={() => analyze()} errors={[...errors, ...(weightError ? [weightError] : [])]} /></div>
+        {view === 'candidates' && <div className="candidate-panel"><CandidateList sites={result?.candidates ?? []} selected={selected} onSelect={selectSite} analyzed={Boolean(result)} />{(result?.warnings ?? []).map((warning) => <p className="warning" key={warning}>{warning}</p>)}{errors.map((error) => <p className="warning" role="alert" key={error}>{error}</p>)}</div>}
+        {view === 'detail' && <SiteDetails key={selected?.id ?? 'empty'} site={selected} data={detail} config={analyzedConfig ?? config} busy={detailBusy} error={detailError} date={detailDate} onDateChange={setDetailDate} />}
+      </div>
+      <div className="analyze-actions"><button className="analyze" type="submit" form="mission-configuration" disabled={busy} onClick={() => setView('configuration')}><img src="/figma/imgSearch.svg" alt="" />{busy ? 'Analyzing…' : 'Analyze Landing Sites'}</button></div>
+    </aside><LunarMap result={result} selected={selected} focused={view === 'detail'} onSelect={selectSite} onReset={() => { setSelected(null); setView('candidates') }} /></main></>
 }
